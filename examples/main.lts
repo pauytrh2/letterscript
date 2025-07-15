@@ -1,0 +1,7 @@
+Dear main, (main function)
+(these are comments btw)
+
+    Please note "Hello, World!", (print statment)
+    Please note "The last line in the main function must end in a period".
+
+Regards, 0. (end main function with specified return code)
