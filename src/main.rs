@@ -5,7 +5,9 @@ fn main() {
     let file_path = match args.get(1) {
         Some(path) => path,
         None => {
-            eprintln!("Error: No file path argument provided.\nPlease provide a file path.");
+            eprintln!(
+                "Error: No file path argument provided.\nPlease provide a file path.\nletterscript <file.lts>"
+            );
             std::process::exit(1);
         }
     };
