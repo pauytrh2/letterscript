@@ -1,4 +1,7 @@
 use std::{env, fs};
+use token::*;
+
+mod token;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -14,4 +17,22 @@ fn main() {
 
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
     dbg!(contents);
+}
+
+fn tokenize(input: &str) -> Vec<Token> {
+    // temp
+    vec![
+        Token {
+            _type: TokenType::MainFunction,
+            value: None,
+        },
+        Token {
+            _type: TokenType::Return,
+            value: None,
+        },
+        Token {
+            _type: TokenType::Int,
+            value: Some("0"),
+        },
+    ]
 }
