@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env, fs};
+use std::{collections::HashMap, env, fs, process::Command};
 
 mod token;
 use token::*;
@@ -14,7 +14,25 @@ fn main() {
         std::process::exit(1);
     });
 
-    dbg!(to_asm(tokenize(&contents)));
+    let asm_code = to_asm(tokenize(&contents));
+
+    fs::write("output.asm", asm_code).expect("Unable to write to file");
+
+    Command::new("nasm")
+        .args(["-f", "elf64"])
+        .args(["-o", "output.o"])
+        .arg("output.asm")
+        .spawn()
+        .expect("nasm failed")
+        .wait()
+        .expect("nasm wait failed");
+    Command::new("ld")
+        .args(["-o", "output"])
+        .arg("output.o")
+        .spawn()
+        .expect("ld failed")
+        .wait()
+        .expect("ld wait failed");
 }
 
 fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
@@ -117,7 +135,7 @@ fn to_asm(tokens: Vec<Token>) -> String {
     for token in tokens {
         if token._type == TokenType::Return {
             output.push_str("    mov eax, 60\n");
-            output.push_str("    mov ebx, 0\n");
+            output.push_str("    mov rdi, 0\n");
             output.push_str("    syscall");
         }
     }
