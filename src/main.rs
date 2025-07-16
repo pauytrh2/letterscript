@@ -57,40 +57,38 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
                 value: Some(core),
             });
             expect_int = false;
-        } else {
-            if core == "Dear" {
-                tokens.push(Token {
-                    _type: TokenType::Function,
-                    value: None,
-                });
-                expect_string = true;
-            } else if core == "Regards" {
-                tokens.push(Token {
-                    _type: TokenType::Return,
-                    value: None,
-                });
+        } else if core == "Dear" {
+            tokens.push(Token {
+                _type: TokenType::Function,
+                value: None,
+            });
+            expect_string = true;
+        } else if core == "Regards" {
+            tokens.push(Token {
+                _type: TokenType::Return,
+                value: None,
+            });
 
-                if let Some(next) = words.peek() {
-                    if next.ends_with(',') {
-                        words.next();
-                        tokens.push(Token {
-                            _type: TokenType::Comma,
-                            value: None,
-                        });
-                        expect_int = true;
-                    }
+            if let Some(next) = words.peek() {
+                if next.ends_with(',') {
+                    words.next();
+                    tokens.push(Token {
+                        _type: TokenType::Comma,
+                        value: None,
+                    });
+                    expect_int = true;
                 }
-            } else if core.chars().all(|c| c.is_ascii_digit()) {
-                tokens.push(Token {
-                    _type: TokenType::Int,
-                    value: Some(core),
-                });
-            } else {
-                tokens.push(Token {
-                    _type: TokenType::String,
-                    value: Some(core),
-                });
             }
+        } else if core.chars().all(|c| c.is_ascii_digit()) {
+            tokens.push(Token {
+                _type: TokenType::Int,
+                value: Some(core),
+            });
+        } else {
+            tokens.push(Token {
+                _type: TokenType::String,
+                value: Some(core),
+            });
         }
 
         if let Some(p) = punctuation {
