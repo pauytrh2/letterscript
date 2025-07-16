@@ -9,8 +9,10 @@ fn main() {
         std::process::exit(1);
     });
 
-    let contents = fs::read_to_string(&file_path)
-        .unwrap_or_else(|_| panic!("Could not read the file at path: {file_path}"));
+    let contents = fs::read_to_string(&file_path).unwrap_or_else(|err| {
+        eprintln!("Could not read file at '{file_path}': {err}");
+        std::process::exit(1);
+    });
 
     dbg!(tokenize(&contents));
 }
@@ -24,7 +26,7 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     let mut expect_int = false;
 
     while let Some(word) = words.next() {
-        let (core, punct) = strip_punctuation(word);
+        let (core, punctuation) = strip_punctuation(word);
 
         if expect_string {
             tokens.push(Token {
@@ -38,38 +40,46 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
                 value: Some(core),
             });
             expect_int = false;
-        } else if core == "Dear" {
-            tokens.push(Token {
-                _type: TokenType::Function,
-                value: None,
-            });
-            expect_string = true;
-        } else if core == "Regards" {
-            tokens.push(Token {
-                _type: TokenType::Return,
-                value: None,
-            });
-
-            if let Some(next) = words.peek() {
-                if next.ends_with(',') {
-                    words.next();
+        } else {
+            match core {
+                "Dear" => {
                     tokens.push(Token {
-                        _type: TokenType::Comma,
+                        _type: TokenType::Function,
                         value: None,
                     });
-                    expect_int = true;
+                    expect_string = true;
+                }
+                "Regards" => {
+                    tokens.push(Token {
+                        _type: TokenType::Return,
+                        value: None,
+                    });
+
+                    if let Some(next) = words.peek() {
+                        if next.ends_with(',') {
+                            words.next();
+                            tokens.push(Token {
+                                _type: TokenType::Comma,
+                                value: None,
+                            });
+                            expect_int = true;
+                        }
+                    }
+                }
+                _ => {
+                    if let Some(token_type) = keywords.get(core) {
+                        tokens.push(Token {
+                            _type: token_type.clone(),
+                            value: Some(core),
+                        });
+                    } else {
+                        eprintln!("Unknown token: {core}");
+                    }
                 }
             }
-        } else if let Some(token_type) = keywords.get(core) {
-            tokens.push(Token {
-                _type: token_type.clone(),
-                value: Some(core),
-            });
-        } else {
-            eprintln!("Unknown token: {core}");
         }
 
-        if let Some(p) = punct {
+        if let Some(p) = punctuation {
             tokens.push(Token {
                 _type: p,
                 value: None,
