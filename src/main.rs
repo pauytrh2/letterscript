@@ -26,6 +26,7 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
 
     for word in input.split_whitespace() {
         // Handle trailing punctuation (e.g. "return," becomes "return" and ",")
+        #[allow(clippy::never_loop)] // I don't even why it says that in the first place but ok
         while !word.is_empty() {
             if word.ends_with('.') {
                 let trimmed = &word[..word.len() - 1];
