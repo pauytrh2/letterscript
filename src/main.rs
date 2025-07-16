@@ -70,7 +70,7 @@ fn add_token<'a>(
             value: Some(word),
         });
     } else {
-        // Unknown token (could be handled later)
+        eprintln!("Unknown token: {}", word); // TODO make this error handeling better
     }
 }
 
