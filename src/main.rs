@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::{env, fs};
-use token::*;
 
 mod token;
+use token::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -21,46 +21,63 @@ fn main() {
 }
 
 fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
-    // At the end it should return something like:
-    //
-    // vec![
-    //     Token {
-    //         _type: TokenType::MainFunction,
-    //         value: None,
-    //     },
-    //     Token {
-    //         _type: TokenType::Return,
-    //         value: None,
-    //     },
-    //     Token {
-    //         _type: TokenType::Int,
-    //         value: Some("0"),
-    //     },
-    // ]
-
     let keywords = get_keywords();
-
     let mut tokens = Vec::new();
 
-    for word in input.split_whitespace() {
-        dbg!(word);
+    for raw_word in input.split_whitespace() {
+        let mut word = raw_word;
 
-        if let Some(token_type) = keywords.get(word) {
-            tokens.push(Token {
-                _type: token_type.clone(),
-                value: Some(word),
-            });
-        } else {
-            // Unknown tokens, will implement later
+        // Handle trailing punctuation (e.g. "return," becomes "return" and ",")
+        while !word.is_empty() {
+            if word.ends_with('.') {
+                let trimmed = &word[..word.len() - 1];
+                if !trimmed.is_empty() {
+                    add_token(&mut tokens, trimmed, &keywords);
+                }
+                tokens.push(Token {
+                    _type: TokenType::Period,
+                    value: None,
+                });
+                break;
+            } else if word.ends_with(',') {
+                let trimmed = &word[..word.len() - 1];
+                if !trimmed.is_empty() {
+                    add_token(&mut tokens, trimmed, &keywords);
+                }
+                tokens.push(Token {
+                    _type: TokenType::Comma,
+                    value: None,
+                });
+                break;
+            } else {
+                add_token(&mut tokens, word, &keywords);
+                break;
+            }
         }
     }
 
     tokens
 }
 
+fn add_token<'a>(
+    tokens: &mut Vec<Token<'a>>,
+    word: &'a str,
+    keywords: &HashMap<&'static str, TokenType>,
+) {
+    if let Some(token_type) = keywords.get(word) {
+        tokens.push(Token {
+            _type: token_type.clone(),
+            value: Some(word),
+        });
+    } else {
+        // Unknown token (could be handled later)
+    }
+}
+
 fn get_keywords() -> HashMap<&'static str, TokenType> {
     let mut keywords = HashMap::new();
-    keywords.insert("Dear main", TokenType::MainFunction);
+    keywords.insert("Dear", TokenType::Function);
+    keywords.insert("main", TokenType::String);
     keywords.insert("return", TokenType::Return);
     keywords.insert("0", TokenType::Int);
 
