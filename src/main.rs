@@ -24,9 +24,7 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     let keywords = get_keywords();
     let mut tokens = Vec::new();
 
-    for raw_word in input.split_whitespace() {
-        let word = raw_word;
-
+    for word in input.split_whitespace() {
         // Handle trailing punctuation (e.g. "return," becomes "return" and ",")
         while !word.is_empty() {
             if word.ends_with('.') {
@@ -76,7 +74,7 @@ fn add_token<'a>(
             value,
         });
     } else {
-        eprintln!("Unknown token: {}", word);
+        eprintln!("Unknown token: {word}");
     }
 }
 
