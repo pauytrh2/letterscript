@@ -78,7 +78,7 @@ fn get_keywords() -> HashMap<&'static str, TokenType> {
     let mut keywords = HashMap::new();
     keywords.insert("Dear", TokenType::Function);
     keywords.insert("main", TokenType::String);
-    keywords.insert("return", TokenType::Return);
+    keywords.insert("Regards", TokenType::Return);
     keywords.insert("0", TokenType::Int);
 
     keywords
