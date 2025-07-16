@@ -16,23 +16,30 @@ fn main() {
     };
 
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
-    dbg!(contents);
+    println!("{:#?}", tokenize(contents.as_str()));
 }
 
 fn tokenize(input: &str) -> Vec<Token> {
-    // temp
-    vec![
-        Token {
-            _type: TokenType::MainFunction,
-            value: None,
-        },
-        Token {
-            _type: TokenType::Return,
-            value: None,
-        },
-        Token {
-            _type: TokenType::Int,
-            value: Some("0"),
-        },
-    ]
+    // At the end it should return something like:
+    //
+    // vec![
+    //     Token {
+    //         _type: TokenType::MainFunction,
+    //         value: None,
+    //     },
+    //     Token {
+    //         _type: TokenType::Return,
+    //         value: None,
+    //     },
+    //     Token {
+    //         _type: TokenType::Int,
+    //         value: Some("0"),
+    //     },
+    // ]
+
+    for char in input.chars() {
+        dbg!(char);
+    }
+
+    Vec::new()
 }
