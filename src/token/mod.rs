@@ -9,6 +9,7 @@ pub enum TokenType {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Token<'a> {
     pub _type: TokenType,
     pub value: Option<&'a str>,
