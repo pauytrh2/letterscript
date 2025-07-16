@@ -19,9 +19,11 @@ fn main() {
     });
 
     let tokens = tokenize(&contents);
-    let mut parser = Parser::new(tokens);
 
-    let asm_code = to_asm(parser.parse_program().expect("Error parsing"));
+    let mut parser = Parser::new(tokens);
+    let parse_tree = parser.parse_program().expect("Error parsing");
+
+    let asm_code = to_asm(parse_tree);
 
     fs::write("output.asm", asm_code).expect("Unable to write to file");
 
