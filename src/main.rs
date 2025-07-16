@@ -19,11 +19,54 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     let keywords = get_keywords();
     let mut tokens = Vec::new();
 
-    for word in input.split_whitespace() {
+    let mut words = input.split_whitespace().peekable();
+    let mut expect_string = false;
+    let mut expect_int = false;
+
+    while let Some(word) = words.next() {
         let (core, punct) = strip_punctuation(word);
 
-        if !core.is_empty() {
-            add_token(&mut tokens, core, &keywords);
+        if expect_string {
+            tokens.push(Token {
+                _type: TokenType::String,
+                value: Some(core),
+            });
+            expect_string = false;
+        } else if expect_int {
+            tokens.push(Token {
+                _type: TokenType::Int,
+                value: Some(core),
+            });
+            expect_int = false;
+        } else if core == "Dear" {
+            tokens.push(Token {
+                _type: TokenType::Function,
+                value: None,
+            });
+            expect_string = true;
+        } else if core == "Regards" {
+            tokens.push(Token {
+                _type: TokenType::Return,
+                value: None,
+            });
+
+            if let Some(next) = words.peek() {
+                if next.ends_with(',') {
+                    words.next();
+                    tokens.push(Token {
+                        _type: TokenType::Comma,
+                        value: None,
+                    });
+                    expect_int = true;
+                }
+            }
+        } else if let Some(token_type) = keywords.get(core) {
+            tokens.push(Token {
+                _type: token_type.clone(),
+                value: Some(core),
+            });
+        } else {
+            eprintln!("Unknown token: {core}");
         }
 
         if let Some(p) = punct {
@@ -45,29 +88,6 @@ fn strip_punctuation(word: &str) -> (&str, Option<TokenType>) {
         return (stripped, Some(TokenType::Comma));
     }
     (word, None)
-}
-
-fn add_token<'a>(
-    tokens: &mut Vec<Token<'a>>,
-    word: &'a str,
-    keywords: &HashMap<&'static str, TokenType>,
-) {
-    match keywords.get(word) {
-        Some(token_type) => {
-            let value = match token_type {
-                TokenType::String => Some(word),
-                _ => None,
-            };
-
-            tokens.push(Token {
-                _type: token_type.clone(),
-                value,
-            });
-        }
-        None => {
-            eprintln!("Unknown token: {word}");
-        }
-    }
 }
 
 fn get_keywords() -> HashMap<&'static str, TokenType> {
