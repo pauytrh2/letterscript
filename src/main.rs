@@ -14,7 +14,7 @@ fn main() {
         std::process::exit(1);
     });
 
-    dbg!(tokenize(&contents));
+    dbg!(to_asm(tokenize(&contents)));
 }
 
 fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
@@ -109,4 +109,18 @@ fn get_keywords() -> HashMap<&'static str, TokenType> {
         ("Regards", Return),
         ("0", Int),
     ])
+}
+
+fn to_asm(tokens: Vec<Token>) -> String {
+    let mut output = String::from("global _start\n\n_start:\n");
+
+    for token in tokens {
+        if token._type == TokenType::Return {
+            output.push_str("    mov eax, 60\n");
+            output.push_str("    mov ebx, 0\n");
+            output.push_str("    syscall");
+        }
+    }
+
+    output
 }
