@@ -25,7 +25,7 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     let mut tokens = Vec::new();
 
     for raw_word in input.split_whitespace() {
-        let mut word = raw_word;
+        let word = raw_word;
 
         // Handle trailing punctuation (e.g. "return," becomes "return" and ",")
         while !word.is_empty() {
@@ -65,12 +65,18 @@ fn add_token<'a>(
     keywords: &HashMap<&'static str, TokenType>,
 ) {
     if let Some(token_type) = keywords.get(word) {
+        let value = match token_type {
+            TokenType::Function | TokenType::Return | TokenType::Int => None,
+            TokenType::String => Some(word),
+            _ => None,
+        };
+
         tokens.push(Token {
             _type: token_type.clone(),
-            value: Some(word),
+            value,
         });
     } else {
-        eprintln!("Unknown token: {}", word); // TODO make this error handeling better
+        eprintln!("Unknown token: {}", word);
     }
 }
 
