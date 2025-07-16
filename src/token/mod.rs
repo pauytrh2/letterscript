@@ -1,3 +1,9 @@
+enum Expecting {
+    Nothing,
+    String,
+    Int,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenType {
     Function,
@@ -19,12 +25,6 @@ pub fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     let mut tokens = Vec::new();
     let mut words = input.split_whitespace().peekable();
 
-    enum Expecting {
-        Nothing,
-        String,
-        Int,
-    }
-
     let mut expecting = Expecting::Nothing;
 
     while let Some(word) = words.next() {
@@ -32,64 +32,20 @@ pub fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
 
         match expecting {
             Expecting::String => {
-                tokens.push(Token {
-                    _type: TokenType::String,
-                    value: Some(core),
-                });
+                tokens.push(make_token(TokenType::String, Some(core)));
                 expecting = Expecting::Nothing;
             }
             Expecting::Int => {
-                tokens.push(Token {
-                    _type: TokenType::Int,
-                    value: Some(core),
-                });
+                tokens.push(make_token(TokenType::Int, Some(core)));
                 expecting = Expecting::Nothing;
             }
-            Expecting::Nothing => match core {
-                "Dear" => {
-                    tokens.push(Token {
-                        _type: TokenType::Function,
-                        value: None,
-                    });
-                    expecting = Expecting::String;
-                }
-                "Regards" => {
-                    tokens.push(Token {
-                        _type: TokenType::Return,
-                        value: None,
-                    });
-
-                    if let Some(next) = words.peek() {
-                        if next.ends_with(',') {
-                            words.next();
-                            tokens.push(Token {
-                                _type: TokenType::Comma,
-                                value: None,
-                            });
-                            expecting = Expecting::Int;
-                        }
-                    }
-                }
-                _ if core.chars().all(|c| c.is_ascii_digit()) => {
-                    tokens.push(Token {
-                        _type: TokenType::Int,
-                        value: Some(core),
-                    });
-                }
-                _ => {
-                    tokens.push(Token {
-                        _type: TokenType::String,
-                        value: Some(core),
-                    });
-                }
-            },
+            Expecting::Nothing => {
+                match_token(core, &mut tokens, &mut expecting, &mut words);
+            }
         }
 
-        if let Some(p) = punctuation {
-            tokens.push(Token {
-                _type: p,
-                value: None,
-            });
+        if let Some(punct) = punctuation {
+            tokens.push(make_token(punct, None));
         }
     }
 
@@ -104,4 +60,41 @@ fn strip_punctuation(word: &str) -> (&str, Option<TokenType>) {
         return (stripped, Some(TokenType::Comma));
     }
     (word, None)
+}
+
+fn make_token<'a>(_type: TokenType, value: Option<&'a str>) -> Token<'a> {
+    Token { _type, value }
+}
+
+fn match_token<'a, I>(
+    core: &'a str,
+    tokens: &mut Vec<Token<'a>>,
+    expecting: &mut Expecting,
+    words: &mut std::iter::Peekable<I>,
+) where
+    I: Iterator<Item = &'a str>,
+{
+    match core {
+        "Dear" => {
+            tokens.push(make_token(TokenType::Function, None));
+            *expecting = Expecting::String;
+        }
+        "Regards" => {
+            tokens.push(make_token(TokenType::Return, None));
+
+            if let Some(next) = words.peek() {
+                if next.ends_with(',') {
+                    words.next();
+                    tokens.push(make_token(TokenType::Comma, None));
+                    *expecting = Expecting::Int;
+                }
+            }
+        }
+        _ if core.chars().all(|c| c.is_ascii_digit()) => {
+            tokens.push(make_token(TokenType::Int, Some(core)));
+        }
+        _ => {
+            tokens.push(make_token(TokenType::String, Some(core)));
+        }
+    }
 }
