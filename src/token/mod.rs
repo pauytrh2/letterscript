@@ -17,58 +17,72 @@ pub struct Token<'a> {
 
 pub fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     let mut tokens = Vec::new();
-
     let mut words = input.split_whitespace().peekable();
-    let mut expect_string = false;
-    let mut expect_int = false;
+
+    enum Expecting {
+        Nothing,
+        String,
+        Int,
+    }
+
+    let mut expecting = Expecting::Nothing;
 
     while let Some(word) = words.next() {
         let (core, punctuation) = strip_punctuation(word);
 
-        if expect_string {
-            tokens.push(Token {
-                _type: TokenType::String,
-                value: Some(core),
-            });
-            expect_string = false;
-        } else if expect_int {
-            tokens.push(Token {
-                _type: TokenType::Int,
-                value: Some(core),
-            });
-            expect_int = false;
-        } else if core == "Dear" {
-            tokens.push(Token {
-                _type: TokenType::Function,
-                value: None,
-            });
-            expect_string = true;
-        } else if core == "Regards" {
-            tokens.push(Token {
-                _type: TokenType::Return,
-                value: None,
-            });
-
-            if let Some(next) = words.peek() {
-                if next.ends_with(',') {
-                    words.next();
+        match expecting {
+            Expecting::String => {
+                tokens.push(Token {
+                    _type: TokenType::String,
+                    value: Some(core),
+                });
+                expecting = Expecting::Nothing;
+            }
+            Expecting::Int => {
+                tokens.push(Token {
+                    _type: TokenType::Int,
+                    value: Some(core),
+                });
+                expecting = Expecting::Nothing;
+            }
+            Expecting::Nothing => match core {
+                "Dear" => {
                     tokens.push(Token {
-                        _type: TokenType::Comma,
+                        _type: TokenType::Function,
                         value: None,
                     });
-                    expect_int = true;
+                    expecting = Expecting::String;
                 }
-            }
-        } else if core.chars().all(|c| c.is_ascii_digit()) {
-            tokens.push(Token {
-                _type: TokenType::Int,
-                value: Some(core),
-            });
-        } else {
-            tokens.push(Token {
-                _type: TokenType::String,
-                value: Some(core),
-            });
+                "Regards" => {
+                    tokens.push(Token {
+                        _type: TokenType::Return,
+                        value: None,
+                    });
+
+                    if let Some(next) = words.peek() {
+                        if next.ends_with(',') {
+                            words.next();
+                            tokens.push(Token {
+                                _type: TokenType::Comma,
+                                value: None,
+                            });
+                            expecting = Expecting::Int;
+                        }
+                    }
+                }
+                _ if core.chars().all(|c| c.is_ascii_digit()) => {
+                    tokens.push(Token {
+                        _type: TokenType::Int,
+                        value: Some(core),
+                    });
+                }
+                _ => {
+                    tokens.push(Token {
+                        _type: TokenType::String,
+                        value: Some(core),
+                    });
+                }
+            },
         }
 
         if let Some(p) = punctuation {
