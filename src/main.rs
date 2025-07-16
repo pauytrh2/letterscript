@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{env, fs};
 use token::*;
 
@@ -19,7 +20,7 @@ fn main() {
     dbg!(tokenize(contents.as_str()));
 }
 
-fn tokenize(input: &str) -> Vec<Token> {
+fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     // At the end it should return something like:
     //
     // vec![
@@ -37,9 +38,31 @@ fn tokenize(input: &str) -> Vec<Token> {
     //     },
     // ]
 
-    for char in input.chars() {
-        dbg!(char);
+    let keywords = get_keywords();
+
+    let mut tokens = Vec::new();
+
+    for word in input.split_whitespace() {
+        dbg!(word);
+
+        if let Some(token_type) = keywords.get(word) {
+            tokens.push(Token {
+                _type: token_type.clone(),
+                value: Some(word),
+            });
+        } else {
+            // Unknown tokens, will implement later
+        }
     }
 
-    Vec::new()
+    tokens
+}
+
+fn get_keywords() -> HashMap<&'static str, TokenType> {
+    let mut keywords = HashMap::new();
+    keywords.insert("Dear main", TokenType::MainFunction);
+    keywords.insert("return", TokenType::Return);
+    keywords.insert("0", TokenType::Int);
+
+    keywords
 }

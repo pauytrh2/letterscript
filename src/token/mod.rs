@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TokenType {
     MainFunction,
     Return,
@@ -7,8 +7,8 @@ pub enum TokenType {
     Period,
 }
 
-#[derive(Debug)]
-pub struct Token {
+#[derive(Debug, Clone)]
+pub struct Token<'a> {
     pub _type: TokenType,
-    pub value: Option<&'static str>,
+    pub value: Option<&'a str>,
 }
