@@ -1,8 +1,10 @@
 use codegen::to_asm;
+use parse::Parser;
 use std::{env, fs, process::Command};
 use token::tokenize;
 
 mod codegen;
+mod parse;
 mod token;
 
 fn main() {
@@ -16,7 +18,10 @@ fn main() {
         std::process::exit(1);
     });
 
-    let asm_code = to_asm(tokenize(&contents));
+    let tokens = tokenize(&contents);
+    let mut parser = Parser::new(tokens);
+
+    let asm_code = to_asm(parser.parse_program().expect("Error parsing"));
 
     fs::write("output.asm", asm_code).expect("Unable to write to file");
 
@@ -28,6 +33,7 @@ fn main() {
         .expect("nasm failed")
         .wait()
         .expect("nasm wait failed");
+
     Command::new("ld")
         .args(["-o", "output"])
         .arg("output.o")

@@ -1,41 +1,19 @@
-use crate::token::{Token, TokenType};
+use crate::parse::Program;
 
-pub fn to_asm(tokens: Vec<Token>) -> String {
-    let mut output = String::from("global _start\n\n_start:\n");
-    let exit_code_line = format!(
-        "    mov edi, {}\n",
-        find_exit_code(tokens.as_slice()).expect("Failed to find exit code")
-    );
+pub fn to_asm(parse_tree: Program) -> String {
+    let mut output = String::new();
 
-    for token in tokens {
-        if token._type == TokenType::Return {
-            output.push_str("    mov eax, 60\n");
-            output.push_str(&exit_code_line);
-            output.push_str("    syscall");
-        }
-    }
+    let function_name = parse_tree.function_name;
+
+    output.push_str("global _start\n");
+    output.push_str(format!("global _{function_name}\n\n").as_str());
+    output.push_str("_start:\n");
+    output.push_str(format!("    call _{function_name}\n\n").as_str());
+
+    output.push_str(format!("_{function_name}:\n").as_str());
+    output.push_str("    mov eax, 60\n");
+    output.push_str(format!("    mov edi, {}\n", parse_tree.return_value).as_str());
+    output.push_str("    syscall\n\n");
 
     output
-}
-
-fn find_exit_code(tokens: &[Token]) -> Option<i32> {
-    for i in 0..tokens.len() {
-        if tokens[i]._type == TokenType::Return {
-            if let Some(Token {
-                _type: TokenType::Comma,
-                ..
-            }) = tokens.get(i + 1)
-            {
-                if let Some(Token {
-                    _type: TokenType::Int,
-                    value: Some(v),
-                }) = tokens.get(i + 2)
-                {
-                    return v.parse().ok();
-                }
-            }
-        }
-    }
-
-    None
 }
