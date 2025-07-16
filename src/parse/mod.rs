@@ -35,10 +35,8 @@ impl<'a> Parser<'a> {
                 "Expected token {:?}, but got {:?}",
                 expected_type, token._type
             )),
-            #[allow(clippy::uninlined_format_args)]
             None => Err(format!(
-                "Expected token {:?}, but got end of input",
-                expected_type
+                "Expected token {expected_type}, but got end of input"
             )),
         }
     }

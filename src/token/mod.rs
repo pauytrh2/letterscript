@@ -21,6 +21,20 @@ pub struct Token<'a> {
     pub value: Option<&'a str>,
 }
 
+impl std::fmt::Display for TokenType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            TokenType::Function => "Function",
+            TokenType::Return => "Return",
+            TokenType::Int => "Int",
+            TokenType::String => "String",
+            TokenType::Comma => "Comma",
+            TokenType::Period => "Period",
+        };
+        write!(f, "{s}")
+    }
+}
+
 pub fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     let mut tokens = Vec::new();
     let mut words = input.split_whitespace().peekable();
