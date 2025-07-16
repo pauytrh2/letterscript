@@ -25,11 +25,9 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
     let mut tokens = Vec::new();
 
     for word in input.split_whitespace() {
-        // Handle trailing punctuation (e.g. "return," becomes "return" and ",")
-        #[allow(clippy::never_loop)] // I don't even why it says that in the first place but ok
+        #[allow(clippy::never_loop)]
         while !word.is_empty() {
-            if word.ends_with('.') {
-                let trimmed = &word[..word.len() - 1];
+            if let Some(trimmed) = word.strip_suffix('.') {
                 if !trimmed.is_empty() {
                     add_token(&mut tokens, trimmed, &keywords);
                 }
@@ -38,8 +36,7 @@ fn tokenize<'a>(input: &'a str) -> Vec<Token<'a>> {
                     value: None,
                 });
                 break;
-            } else if word.ends_with(',') {
-                let trimmed = &word[..word.len() - 1];
+            } else if let Some(trimmed) = word.strip_suffix(',') {
                 if !trimmed.is_empty() {
                     add_token(&mut tokens, trimmed, &keywords);
                 }
