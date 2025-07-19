@@ -1,27 +1,32 @@
+use cli::parse_cli_args;
 use codegen::to_asm;
 use parse::Parser;
-use std::{env, fs, process::Command};
+use std::{fs, process::Command};
 use token::tokenize;
 
+mod cli;
 mod codegen;
 mod parse;
 mod token;
 
 fn main() {
-    let file_path = env::args().nth(1).unwrap_or_else(|| {
-        eprintln!("Error: No file path argument provided.\nUsage: letterscript <file.lts>");
-        std::process::exit(1);
-    });
+    let args = parse_cli_args();
 
-    let contents = fs::read_to_string(&file_path).unwrap_or_else(|err| {
-        eprintln!("Could not read file at '{file_path}': {err}");
+    let contents = fs::read_to_string(&args.file_path).unwrap_or_else(|err| {
+        eprintln!("Could not read file at '{}': {err}", args.file_path);
         std::process::exit(1);
     });
 
     let tokens = tokenize(&contents);
+    if args.is_dev {
+        dbg!(&tokens);
+    }
 
     let mut parser = Parser::new(tokens);
     let parse_tree = parser.parse_program().expect("Error parsing");
+    if args.is_dev {
+        dbg!(&parse_tree);
+    }
 
     let asm_code = to_asm(parse_tree);
 
